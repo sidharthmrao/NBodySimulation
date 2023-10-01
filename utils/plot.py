@@ -45,6 +45,8 @@ class Plot:
         if pygame.key.get_pressed()[pygame.K_d]:
             constants.vals.center_x -= 10
 
+    @staticmethod
+    def update():
         pygame.display.update()
 
     @staticmethod

@@ -29,6 +29,7 @@ bodies = [
 # ]  # Earth Moon System
 
 vals.trails = {body.name: ([], body.color) for body in bodies}
+vals.trails['CM'] = ([], (255, 0, 0))
 
 vals.pixel_scale = 5 / bodies[0].radius
 vals.pixel_scale = 100 / (bodies[0].position - bodies[1].position).magnitude()
@@ -75,6 +76,8 @@ def update(bodies, iterations):
 
 
 while True:
+    start = time.time()
+
     update(bodies, iterations=int(vals.simulation_seconds_per_iter / vals.time_per_iter))
 
     plot.clear()
@@ -92,7 +95,9 @@ while True:
             plot.draw_trail(trail[0], trail[1])
 
     cm = center_of_mass(bodies)
+    vals.trails['CM'][0].append(cm.vec)
     plot.draw_point(plot.window, cm, 2 * (1 / vals.pixel_scale), (255, 0, 0))
+    plot.draw_trail(vals.trails['CM'][0], vals.trails['CM'][1])
 
     plot.draw_text(f'TIME STEP: {vals.simulation_seconds_per_iter}', 10 * (1 / vals.pixel_scale),
                    (60 / vals.pixel_scale, 10 / vals.pixel_scale), (255, 255, 255))
@@ -100,4 +105,7 @@ while True:
                    (60 / vals.pixel_scale, 20 / vals.pixel_scale), (255, 255, 255))
 
     plot.main_routine()
-    time.sleep(vals.time_per_iter)
+    plot.update()
+
+    diff = time.time() - start
+    time.sleep(vals.time_per_iter - diff if diff < vals.time_per_iter else 0)
