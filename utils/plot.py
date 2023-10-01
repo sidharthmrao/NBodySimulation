@@ -47,18 +47,22 @@ class Plot:
 
         pygame.display.update()
 
-    def draw_point(self, point: Vector, radius, color):
+    @staticmethod
+    def draw_point(screen, point: Vector, radius, color):
         point *= vals.pixel_scale
         radius *= vals.pixel_scale
-        pygame.draw.circle(self.window, color, (point.vec[0] + vals.center_x, point.vec[1] + vals.center_y),
+        pygame.draw.circle(screen, color,
+                           (point.vec[0] + vals.center_x, point.vec[1] + vals.center_y),
                            radius)
 
-    def draw_vector(self, point: Vector, vec: Vector, color):
+    @staticmethod
+    def draw_vector(screen, point: Vector, vec: Vector, color, width=1, alpha=255):
         point *= vals.pixel_scale
         vec *= vals.pixel_scale
         pygame.draw.line(
-            self.window, color, (point.vec[0] + vals.center_x, point.vec[1] + vals.center_y),
-            (point.vec[0] + vec.vec[0] + vals.center_x, point.vec[1] + vec.vec[1] + vals.center_y)
+            screen, color, (point.vec[0] + vals.center_x, point.vec[1] + vals.center_y),
+            (point.vec[0] + vec.vec[0] + vals.center_x, point.vec[1] + vec.vec[1] + vals.center_y),
+            width
         )
 
     def draw_label(self, text, size, pos, color):
@@ -82,16 +86,41 @@ class Plot:
         self.window.blit(text, textRect)
 
     def draw_body(self, body: Body):
-        self.draw_point(body.position, body.radius, body.color)
-        self.draw_vector(body.position,
+        screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.draw_point(screen, body.position, body.radius, body.color + (100,))
+        self.window.blit(screen, (0, 0))
+
+        self.draw_point(self.window, body.position, body.radius * .8, body.color)
+        self.draw_vector(self.window, body.position,
                          body.velocity.normalize() * (40 / vals.pixel_scale) if
                          vals.normalize else body.velocity * 10, body.color)
         self.draw_label(body.name, body.radius, body.position.int_tuple(),
-                       opposite_color(body.color))
+                        opposite_color(body.color))
 
     def draw_trail(self, trail: list, color):
+        screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
         for i in range(len(trail) - 1):
-            self.draw_vector(Vector(trail[i]), Vector(trail[i + 1]) - Vector(trail[i]), color)
+            ratio = i / len(trail)
+            new_color = [x * ratio for x in color]
+            new_color.append(100)
+
+            self.draw_vector(
+                self.window,
+                Vector(trail[i]),
+                Vector(trail[i + 1]) - Vector(trail[i]),
+                (255, 255, 255),
+                1
+            )
+            self.draw_vector(
+                screen,
+                Vector(trail[i]),
+                Vector(trail[i + 1]) - Vector(trail[i]),
+                new_color,
+                6
+            )
+
+        self.window.blit(screen, (0, 0))
 
     def clear(self):
         self.window.fill((0, 0, 0))
