@@ -107,7 +107,36 @@ def center_of_mass(bodies: list) -> Vector:
     total_mass = sum([body.mass for body in bodies])
     weighted_bodies = [body.position * body.mass for body in bodies]
     return Vector([
-            sum([weighted_body.vec[x] for weighted_body in weighted_bodies]) / total_mass
-            for x in range(len(weighted_bodies[0].vec))
-        ]
+        sum([weighted_body.vec[x] for weighted_body in weighted_bodies]) / total_mass
+        for x in range(len(weighted_bodies[0].vec))
+    ]
     )
+
+
+def check_collision(bodies):
+    """
+    Checks for collisions between bodies and merges them if they collide.
+    :param bodies: List of bodies
+    """
+    for body in bodies:
+        for other in bodies:
+            if body != other and (
+                    body.position - other.position).magnitude() <= body.radius + other.radius:
+                bodies.remove(body)
+                bodies.remove(other)
+
+                new_body = Body(
+                    body.mass + other.mass,
+                    ((body.radius + other.radius) + (body.radius if body.mass > other.mass else
+                                                     other.radius)) / 2,
+                    center_of_mass([body, other]).vec,
+                    [0 for _ in body.position.vec],
+                    body.color if body.mass > other.mass else other.color,
+                    body.name if body.mass > other.mass else other.name,
+                    hash=body.hash if body.mass > other.mass else other.hash
+                )
+
+                momentum = body.velocity * body.mass + other.velocity * other.mass
+                new_body.velocity = momentum / new_body.mass
+
+                bodies.append(new_body)

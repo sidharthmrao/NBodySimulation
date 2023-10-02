@@ -5,15 +5,22 @@ from utils.constants import vals
 from utils.plot import Plot
 from utils.body import Vector, Body, center_of_mass
 from utils.color import gen_color
+import cProfile
 
 center = 0
 
+# bodies = [
+#     Body(1e10, 5, [0, 0, 100], [.3, .5, 0], gen_color(), 'A', hash=str(random.getrandbits(128))),
+#     Body(1e10, 5, [100, 200, 100], [-.8, 0, 0], gen_color(), 'B', hash=str(random.getrandbits(128))),
+#     Body(1e10, 5, [50, 100, 200], [-4, 4, 0], gen_color(), 'C', hash=str(random.getrandbits(128))),
+#     # Body(1e10, 5, [150, 110, 100], [.5, 4, 0], gen_color(), 'D'),
+# ]
+
 bodies = [
-    Body(1e10, 5, [0, 0, 100], [.3, .5, 0], gen_color(), 'A', hash=str(random.getrandbits(128))),
-    Body(1e10, 5, [100, 200, 100], [-.8, 0, 0], gen_color(), 'B', hash=str(random.getrandbits(128))),
-    Body(1e10, 5, [50, 100, 200], [-4, 4, 0], gen_color(), 'C', hash=str(random.getrandbits(128))),
-    # Body(1e10, 5, [150, 110, 100], [.5, 4, 0], gen_color(), 'D'),
-]
+    Body(1e10, 1, [-15, 0, 0], [0, -4, 0], gen_color(), 'A', hash=str(random.getrandbits(128))),
+    Body(1e10, 1, [-50, 10, 0], [12, 0, 0], gen_color(), 'B', hash=str(random.getrandbits(128))),
+    Body(1e10, 1, [50, 10, 0], [-4, -8, 0], gen_color(), 'C', hash=str(random.getrandbits(128))),
+] # CHAOS
 
 # bodies = [
 #     Body(5e5, .1, [0, 0, 0], [-2 * 1, -.2 * 1, 0], gen_color(), 'A'),
@@ -38,6 +45,10 @@ plot = Plot(vals.screen_size, vals.screen_size)
 
 
 def check_collision(bodies):
+    """
+    Checks for collisions between bodies and merges them if they collide.
+    :param bodies: List of bodies
+    """
     for body in bodies:
         for other in bodies:
             if body != other and (
@@ -64,6 +75,11 @@ def check_collision(bodies):
 
 
 def update(bodies, iterations):
+    """
+    Updates the positions and velocities of the bodies.
+    :param bodies: List of bodies
+    :param iterations: Number of iterations to run
+    """
     for _ in range(iterations):
         for _ in range(len(bodies)):
             check_collision(bodies)
@@ -82,6 +98,7 @@ while True:
 
     plot.clear()
 
+    # Draw bodies and trails
     for i, body in enumerate(bodies):
         plot.draw_body(body)
 
@@ -94,11 +111,13 @@ while True:
         for trail in vals.trails.values():
             plot.draw_trail(trail[0], trail[1])
 
+    # Draw center of mass
     cm = center_of_mass(bodies)
     vals.trails['CM'][0].append(cm.vec)
     plot.draw_point(plot.window, cm, 2 * (1 / vals.pixel_scale), (255, 0, 0))
     plot.draw_trail(vals.trails['CM'][0], vals.trails['CM'][1])
 
+    # Draw simulation info
     plot.draw_text(f'TIME STEP: {vals.simulation_seconds_per_iter}', 10 * (1 / vals.pixel_scale),
                    (60 / vals.pixel_scale, 10 / vals.pixel_scale), (255, 255, 255))
     plot.draw_text(f'PRECISION: {vals.dT}', 10 / vals.pixel_scale,
@@ -107,5 +126,7 @@ while True:
     plot.main_routine()
     plot.update()
 
+    # Sleep to maintain constant FPS
     diff = time.time() - start
+    print(diff)
     time.sleep(vals.time_per_iter - diff if diff < vals.time_per_iter else 0)
