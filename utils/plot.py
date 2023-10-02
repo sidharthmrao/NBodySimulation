@@ -29,9 +29,9 @@ class Plot:
                 return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    constants.vals.simulation_seconds_per_iter *= 2
+                    constants.vals.simulation_seconds_per_real_second *= 2
                 if event.key == pygame.K_LEFT:
-                    constants.vals.simulation_seconds_per_iter /= 2
+                    constants.vals.simulation_seconds_per_real_second /= 2
                 if event.key == pygame.K_UP:
                     constants.vals.dT /= 2
                 if event.key == pygame.K_DOWN:

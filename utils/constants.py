@@ -21,5 +21,5 @@ class vals:
     simulation_seconds_per_iter: seconds = 1  # How many real time seconds to simulate per iteration
     dT: seconds = .0001  # Precision of the simulation
 
-    frames_per_second = 30
+    frames_per_second = 60
     simulation_seconds_per_real_second = 1

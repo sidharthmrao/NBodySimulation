@@ -1,7 +1,7 @@
 import time
 from copy import deepcopy
 
-from constants import vals
+from utils.constants import vals
 from utils.body import Body, center_of_mass, check_collision
 
 
@@ -54,9 +54,9 @@ class frame_renderer:
         simulation_seconds = seconds_per_frame * vals.simulation_seconds_per_real_second
         simulation_iters = simulation_seconds / vals.dT
 
-        self.update(simulation_iters)
+        self.update(int(simulation_iters))
 
-        await self.wait_until(lambda: self.current_frame_time() > 1)
+        await self.wait_until(lambda: self.current_frame_time() > 1 / vals.frames_per_second)
 
         self.current_frame = deepcopy(self.bodies)
 
@@ -66,7 +66,7 @@ class frame_renderer:
         self.plot.clear()
 
         # Draw bodies and trails
-        for i, body in enumerate(self.bodies):
+        for i, body in enumerate(self.current_frame):
             self.plot.draw_body(body)
 
             if vals.trail:
@@ -79,13 +79,13 @@ class frame_renderer:
                 self.plot.draw_trail(trail[0], trail[1])
 
         # Draw center of mass
-        cm = center_of_mass(self.bodies)
+        cm = center_of_mass(self.current_frame)
         vals.trails['CM'][0].append(cm.vec)
         self.plot.draw_point(self.plot.window, cm, 2 * (1 / vals.pixel_scale), (255, 0, 0))
         self.plot.draw_trail(vals.trails['CM'][0], vals.trails['CM'][1])
 
         # Draw simulation info
-        self.plot.draw_text(f'TIME STEP: {vals.simulation_seconds_per_iter}',
+        self.plot.draw_text(f'TIME STEP: {vals.simulation_seconds_per_real_second}',
                             10 * (1 / vals.pixel_scale),
                             (60 / vals.pixel_scale, 10 / vals.pixel_scale), (255, 255, 255))
         self.plot.draw_text(f'PRECISION: {vals.dT}', 10 / vals.pixel_scale,

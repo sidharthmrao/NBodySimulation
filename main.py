@@ -1,3 +1,4 @@
+import asyncio
 import time
 import random
 
@@ -6,6 +7,10 @@ from utils.plot import Plot
 from utils.body import Vector, Body, center_of_mass
 from utils.color import gen_color
 import cProfile
+
+from utils.render import frame_renderer
+
+import threading
 
 center = 0
 
@@ -20,7 +25,7 @@ bodies = [
     Body(1e10, 1, [-15, 0, 0], [0, -4, 0], gen_color(), 'A', hash=str(random.getrandbits(128))),
     Body(1e10, 1, [-50, 10, 0], [12, 0, 0], gen_color(), 'B', hash=str(random.getrandbits(128))),
     Body(1e10, 1, [50, 10, 0], [-4, -8, 0], gen_color(), 'C', hash=str(random.getrandbits(128))),
-] # CHAOS
+]  # CHAOS
 
 # bodies = [
 #     Body(5e5, .1, [0, 0, 0], [-2 * 1, -.2 * 1, 0], gen_color(), 'A'),
@@ -35,98 +40,25 @@ bodies = [
 #     # Body(1.989e30, 6.957e8, [center + 1.496e11, center, 0], [0, 0, 0], (255, 255, 0), 'Sun'),
 # ]  # Earth Moon System
 
-vals.trails = {body.hash: ([], body.color) for body in bodies}
-vals.trails['CM'] = ([], (255, 0, 0))
-
-vals.pixel_scale = 5 / bodies[0].radius
-vals.pixel_scale = 100 / (bodies[0].position - bodies[1].position).magnitude()
-
 plot = Plot(vals.screen_size, vals.screen_size)
+renderer = frame_renderer(bodies, plot)
 
 
-def check_collision(bodies):
-    """
-    Checks for collisions between bodies and merges them if they collide.
-    :param bodies: List of bodies
-    """
-    for body in bodies:
-        for other in bodies:
-            if body != other and (
-                    body.position - other.position).magnitude() <= body.radius + other.radius:
-                bodies.remove(body)
-                bodies.remove(other)
-
-                new_body = Body(
-                    body.mass + other.mass,
-                    ((body.radius + other.radius) + (body.radius if body.mass > other.mass else
-                                                     other.radius)) / 2,
-                    center_of_mass([body, other]).vec,
-                    [0 for _ in body.position.vec],
-                    body.color if body.mass > other.mass else other.color,
-                    body.name if body.mass > other.mass else other.name,
-                    hash=body.hash if body.mass > other.mass else other.hash
-                )
-
-                momentum = body.velocity * body.mass + other.velocity * other.mass
-                new_body.velocity = momentum / new_body.mass
-
-                bodies.append(new_body)
-                break
+async def calc():
+    while True:
+        await renderer.calc_next_frame()
 
 
-def update(bodies, iterations):
-    """
-    Updates the positions and velocities of the bodies.
-    :param bodies: List of bodies
-    :param iterations: Number of iterations to run
-    """
-    for _ in range(iterations):
-        for _ in range(len(bodies)):
-            check_collision(bodies)
+async def render():
+    while True:
+        await asyncio.gather(
+            renderer.render_current_frame(),
+            renderer.calc_next_frame()
+        )
 
-        for body in bodies:
-            body.update_velocity(bodies)
+# loop = asyncio.get_event_loop()
+# loop.create_task(calc())
+# loop.create_task(render())
+# loop.run_forever()
 
-        for body in bodies:
-            body.update_position()
-
-
-while True:
-    start = time.time()
-
-    update(bodies, iterations=int(vals.simulation_seconds_per_iter / vals.time_per_iter))
-
-    plot.clear()
-
-    # Draw bodies and trails
-    for i, body in enumerate(bodies):
-        plot.draw_body(body)
-
-        if vals.trail:
-            vals.trails[body.hash][0].append(body.position.vec)
-            if len(vals.trails[body.hash][0]) > vals.trail_length:
-                vals.trails[body.hash][0].pop(0)
-
-    if vals.trail:
-        for trail in vals.trails.values():
-            plot.draw_trail(trail[0], trail[1])
-
-    # Draw center of mass
-    cm = center_of_mass(bodies)
-    vals.trails['CM'][0].append(cm.vec)
-    plot.draw_point(plot.window, cm, 2 * (1 / vals.pixel_scale), (255, 0, 0))
-    plot.draw_trail(vals.trails['CM'][0], vals.trails['CM'][1])
-
-    # Draw simulation info
-    plot.draw_text(f'TIME STEP: {vals.simulation_seconds_per_iter}', 10 * (1 / vals.pixel_scale),
-                   (60 / vals.pixel_scale, 10 / vals.pixel_scale), (255, 255, 255))
-    plot.draw_text(f'PRECISION: {vals.dT}', 10 / vals.pixel_scale,
-                   (60 / vals.pixel_scale, 20 / vals.pixel_scale), (255, 255, 255))
-
-    plot.main_routine()
-    plot.update()
-
-    # Sleep to maintain constant FPS
-    diff = time.time() - start
-    print(diff)
-    time.sleep(vals.time_per_iter - diff if diff < vals.time_per_iter else 0)
+asyncio.run(render())
