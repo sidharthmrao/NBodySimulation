@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 from utils import constants
@@ -25,8 +27,7 @@ class Plot:
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                return
+                constants.vals.quit = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     constants.vals.simulation_seconds_per_real_second *= 2

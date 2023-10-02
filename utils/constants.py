@@ -23,3 +23,5 @@ class vals:
 
     frames_per_second = 60
     simulation_seconds_per_real_second = 1
+
+    quit = False

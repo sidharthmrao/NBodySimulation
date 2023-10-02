@@ -43,11 +43,7 @@ class frame_renderer:
             for body in self.bodies:
                 body.update_position()
 
-    async def wait_until(self, condition):
-        while not condition():
-            pass
-
-    async def calc_next_frame(self):
+    def calc_next_frame(self):
         self.current_frame_start_time = time.time()
 
         seconds_per_frame = 1 / vals.frames_per_second
@@ -56,11 +52,12 @@ class frame_renderer:
 
         self.update(int(simulation_iters))
 
-        await self.wait_until(lambda: self.current_frame_time() > 1 / vals.frames_per_second)
+        while self.current_frame_start_time < 1 / vals.frames_per_second:
+            pass
 
         self.current_frame = deepcopy(self.bodies)
 
-    async def render_current_frame(self):
+    def render_current_frame(self):
         self.render_frame_start_time = time.time()
 
         self.plot.clear()
@@ -94,4 +91,5 @@ class frame_renderer:
         self.plot.main_routine()
         self.plot.update()
 
-        await self.wait_until(lambda: self.render_frame_time() > 1 / vals.frames_per_second)
+        while self.render_frame_time() < 1 / vals.frames_per_second:
+            pass
