@@ -3,11 +3,16 @@ import pygame
 from utils import constants
 from utils.body import Vector, Body
 from utils.constants import vals
-from utils.color import opposite_color
+from utils.color import complementary_color
 
 
 class Plot:
     def __init__(self, width, height):
+        """
+        Creates a new plot.
+        :param width: Width of the plot in pixels
+        :param height: Height of the plot in pixels
+        """
         pygame.init()
         self.window = pygame.display.set_mode((width, height))
         self.width = width
@@ -15,6 +20,9 @@ class Plot:
 
     @staticmethod
     def main_routine():
+        """
+        Main routine for the plot, runs every display iteration. Handles events.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -47,10 +55,20 @@ class Plot:
 
     @staticmethod
     def update():
+        """
+        Updates the display.
+        """
         pygame.display.update()
 
     @staticmethod
     def draw_point(screen, point: Vector, radius, color):
+        """
+        Draws a point on the screen.
+        :param screen: Screen to draw on
+        :param point: Vector position of the point
+        :param radius: Radius of the point
+        :param color: Color of the point as a (r, g, b) tuple, 0-255
+        """
         point *= vals.pixel_scale
         radius *= vals.pixel_scale
         pygame.draw.circle(screen, color,
@@ -59,6 +77,15 @@ class Plot:
 
     @staticmethod
     def draw_vector(screen, point: Vector, vec: Vector, color, width=1, alpha=255):
+        """
+        Draws a vector on the screen.
+        :param screen: Screen to draw on
+        :param point: Vector position of the start of the vector
+        :param vec: Vector direction of the vector
+        :param color: Color of the vector as a (r, g, b) tuple, 0-255
+        :param width: Width of the vector
+        :param alpha: Opacity of the vector, 0-255
+        """
         point *= vals.pixel_scale
         vec *= vals.pixel_scale
         pygame.draw.line(
@@ -68,6 +95,13 @@ class Plot:
         )
 
     def draw_label(self, text, size, pos, color):
+        """
+        Draws a label of a body on the screen.
+        :param text: Text to draw
+        :param size: Size of the text
+        :param pos: Screen position of the center of the text
+        :param color: Color of the text as a (r, g, b) tuple, 0-255
+        """
         size *= vals.pixel_scale
         pos = (pos[0] * vals.pixel_scale + vals.center_x, pos[1] * vals.pixel_scale + vals.center_y)
         font = pygame.font.SysFont('Arial', int(size))
@@ -78,6 +112,13 @@ class Plot:
         self.window.blit(text, textRect)
 
     def draw_text(self, text, size, pos, color):
+        """
+        Draws text on the screen.
+        :param text: Text to draw
+        :param size: Size of the text
+        :param pos: Screen position of the center of the text
+        :param color: Color of the text as a (r, g, b) tuple, 0-255
+        """
         size *= vals.pixel_scale
         pos = (pos[0] * vals.pixel_scale, pos[1] * vals.pixel_scale)
         font = pygame.font.SysFont('Arial', int(size))
@@ -88,6 +129,10 @@ class Plot:
         self.window.blit(text, textRect)
 
     def draw_body(self, body: Body):
+        """
+        Draws a body on the screen.
+        :param body: Body to draw
+        """
         screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.draw_point(screen, body.position, body.radius, body.color + (100,))
         self.window.blit(screen, (0, 0))
@@ -97,9 +142,14 @@ class Plot:
                          body.velocity.normalize() * (40 / vals.pixel_scale) if
                          vals.normalize else body.velocity * 10, body.color)
         self.draw_label(body.name, body.radius, body.position.int_tuple(),
-                        opposite_color(body.color))
+                        complementary_color(body.color))
 
     def draw_trail(self, trail: list, color):
+        """
+        Draws a trail on the screen.
+        :param trail: List of vector trails to draw
+        :param color: Color of the trail as a (r, g, b) tuple, 0-255
+        """
         screen = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
         for i in range(len(trail) - 1):
@@ -125,8 +175,14 @@ class Plot:
         self.window.blit(screen, (0, 0))
 
     def clear(self):
+        """
+        Clears the screen.
+        """
         self.window.fill((0, 0, 0))
 
     def keep_open(self):
+        """
+        Keeps the window open.
+        """
         while True:
             self.main_routine()

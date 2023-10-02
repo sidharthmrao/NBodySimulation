@@ -9,9 +9,9 @@ from utils.color import gen_color
 center = 0
 
 bodies = [
-    Body(1e10, 5, [0, 0, 100], [.3, .5, 0], gen_color(), 'A'),
-    Body(1e10, 5, [100, 200, 100], [-.8, 0, 0], gen_color(), 'B'),
-    Body(1e10, 5, [50, 100, 200], [-4, 4, 0], gen_color(), 'C'),
+    Body(1e10, 5, [0, 0, 100], [.3, .5, 0], gen_color(), 'A', hash=str(random.getrandbits(128))),
+    Body(1e10, 5, [100, 200, 100], [-.8, 0, 0], gen_color(), 'B', hash=str(random.getrandbits(128))),
+    Body(1e10, 5, [50, 100, 200], [-4, 4, 0], gen_color(), 'C', hash=str(random.getrandbits(128))),
     # Body(1e10, 5, [150, 110, 100], [.5, 4, 0], gen_color(), 'D'),
 ]
 
@@ -28,7 +28,7 @@ bodies = [
 #     # Body(1.989e30, 6.957e8, [center + 1.496e11, center, 0], [0, 0, 0], (255, 255, 0), 'Sun'),
 # ]  # Earth Moon System
 
-vals.trails = {body.name: ([], body.color) for body in bodies}
+vals.trails = {body.hash: ([], body.color) for body in bodies}
 vals.trails['CM'] = ([], (255, 0, 0))
 
 vals.pixel_scale = 5 / bodies[0].radius
@@ -42,7 +42,6 @@ def check_collision(bodies):
         for other in bodies:
             if body != other and (
                     body.position - other.position).magnitude() <= body.radius + other.radius:
-                print('collision')
                 bodies.remove(body)
                 bodies.remove(other)
 
@@ -53,7 +52,8 @@ def check_collision(bodies):
                     center_of_mass([body, other]).vec,
                     [0 for _ in body.position.vec],
                     body.color if body.mass > other.mass else other.color,
-                    body.name if body.mass > other.mass else other.name
+                    body.name if body.mass > other.mass else other.name,
+                    hash=body.hash if body.mass > other.mass else other.hash
                 )
 
                 momentum = body.velocity * body.mass + other.velocity * other.mass
@@ -86,9 +86,9 @@ while True:
         plot.draw_body(body)
 
         if vals.trail:
-            vals.trails[body.name][0].append(body.position.vec)
-            if len(vals.trails[body.name][0]) > vals.trail_length:
-                vals.trails[body.name][0].pop(0)
+            vals.trails[body.hash][0].append(body.position.vec)
+            if len(vals.trails[body.hash][0]) > vals.trail_length:
+                vals.trails[body.hash][0].pop(0)
 
     if vals.trail:
         for trail in vals.trails.values():
