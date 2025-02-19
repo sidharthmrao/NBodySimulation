@@ -17,7 +17,8 @@ A: Move left
 D: Move right
 
 ##### Description
-Multithreaded N-Body-Problem simulator. Threading has been moved to the "threading" branch because not all graphics cards support multithreading in pygame.
+Multithreaded N-Body-Problem simulator. Threading has been moved to the "threading" branch because not all graphics cards support multithreading in pygame.  
+Note: The red dot represents the center of mass.
 
 ##### Images
 ![](https://github.com/sidharthmrao/NBodySimulation/blob/master/Screenshots/2023-11-04-194315_hyprshot.png)
